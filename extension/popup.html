@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1>FocusAI</h1>
+
+    <label class="switch"><input type="checkbox" id="enabled" /> Filtering enabled</label>
+
+    <section id="tab-state" hidden>
+      <h2>This page</h2>
+      <div id="tab-decision"></div>
+      <p id="tab-explanation"></p>
+      <div id="tab-concepts" class="chips"></div>
+    </section>
+
+    <section>
+      <h2>Study session</h2>
+      <select id="session"></select>
+      <p class="hint" id="session-hint">Tip: starting a session in the FocusAI web app activates it here automatically.</p>
+    </section>
+
+    <section>
+      <h2>Backend</h2>
+      <input id="backend" type="url" placeholder="http://127.0.0.1:8000" />
+      <div class="row">
+        <button id="save">Save</button>
+        <button id="test" class="ghost">Test connection</button>
+      </div>
+      <p id="status" class="hint"></p>
+    </section>
+    <script src="popup.js"></script>
+  </body>
+</html>
