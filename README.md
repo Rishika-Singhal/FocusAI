@@ -1,246 +1,446 @@
-FocusAI — AI-Powered Context-Aware Study Assistant
+::: {align="center"}
+# FocusAI
 
-FocusAI is an AI-powered study assistant that helps students stay focused by evaluating online content against their study topics and learning objectives.
+### Study with intention. Browse with focus.
 
-Using semantic similarity and selective large language model evaluation, FocusAI classifies online content as Relevant, Partially Relevant, or Distracting. It combines a Python backend, a React and TypeScript frontend, and a Chrome extension to help students make more intentional decisions about the content they consume online.
+**An AI-powered, context-aware learning assistant that evaluates online
+content against your current study goals.**
 
-Features
+```{=html}
+<p>
+```
+`<img src="https://img.shields.io/badge/AI-Context--Aware-7C3AED?style=for-the-badge" alt="Context-aware AI">`{=html}
+`<img src="https://img.shields.io/badge/Backend-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">`{=html}
+`<img src="https://img.shields.io/badge/Frontend-React%20%2B%20TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="React and TypeScript">`{=html}
+`<img src="https://img.shields.io/badge/Browser-Chrome%20Extension-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Chrome extension">`{=html}
+```{=html}
+</p>
+```
+```{=html}
+<p>
+```
+`<a href="#-the-idea">`{=html}The Idea`</a>`{=html}  • 
+`<a href="#-features">`{=html}Features`</a>`{=html}  • 
+`<a href="#-how-it-works">`{=html}How It Works`</a>`{=html}  • 
+`<a href="#-getting-started">`{=html}Getting Started`</a>`{=html}  • 
+`<a href="#-project-structure">`{=html}Structure`</a>`{=html}
+```{=html}
+</p>
+```
+:::
 
-* Context-Aware Content Analysis: Evaluates online content against a student’s current study topic and learning objectives.
-* Semantic Similarity: Uses Sentence Transformers to compare content with the user’s learning context.
-* AI-Assisted Evaluation: Integrates Google Gemini to provide additional contextual evaluation when needed.
-* Three-Level Classification: Categorizes content as Relevant, Partially Relevant, or Distracting.
-* Adaptive Scoring: Combines semantic similarity and contextual evaluation to determine content relevance.
-* Chrome Extension: Connects the study assistant with supported browsing experiences.
-* YouTube and Netflix Support: Designed to evaluate content on supported pages from these platforms.
-* FastAPI Backend: Provides the backend services responsible for relevance analysis.
-* React and TypeScript Frontend: Provides the user interface for interacting with the study assistant.
+------------------------------------------------------------------------
 
-How It Works
+## 🎯 The Idea
 
-FocusAI uses a semantic-analysis pipeline to determine how closely online content aligns with a student’s learning objectives.
+When studying online, useful material and distractions often live on the
+same websites. A traditional blocklist cannot tell the difference
+between a lecture that supports your assignment and an unrelated video
+on the same platform.
 
-1. Define the learning context: The student specifies a study topic or learning objective.
-2. Analyze online content: FocusAI extracts or receives the available content from a supported page.
-3. Calculate semantic similarity: Sentence Transformers generates embeddings that help measure the relationship between the content and the learning context.
-4. Evaluate ambiguous content: Google Gemini can provide an additional contextual assessment when the initial result requires further evaluation.
-5. Classify the content: The system uses its relevance-scoring mechanism to categorize content as Relevant, Partially Relevant, or Distracting.
-6. Present the result: The frontend and browser extension make the analysis available to the student.
+**FocusAI takes your study context into account.** It evaluates the
+content you are viewing against your topic, assignment, or learning
+objectives and categorizes it as:
 
-The system uses semantic similarity as its primary signal and invokes the language model selectively rather than relying on an LLM for every classification.
+```{=html}
+<table>
+```
+```{=html}
+<tr>
+```
+```{=html}
+<td align="center" width="33%">
+```
+```{=html}
+<h3>
+```
+🟢 Relevant
+```{=html}
+</h3>
+```
+```{=html}
+<p>
+```
+Content that supports your current learning goal.
+```{=html}
+</p>
+```
+```{=html}
+</td>
+```
+```{=html}
+<td align="center" width="33%">
+```
+```{=html}
+<h3>
+```
+🟡 Partially Relevant
+```{=html}
+</h3>
+```
+```{=html}
+<p>
+```
+Content that may be useful but is not fully aligned.
+```{=html}
+</p>
+```
+```{=html}
+</td>
+```
+```{=html}
+<td align="center" width="33%">
+```
+```{=html}
+<h3>
+```
+🔴 Distracting
+```{=html}
+</h3>
+```
+```{=html}
+<p>
+```
+Content that is unrelated to your current study context.
+```{=html}
+</p>
+```
+```{=html}
+</td>
+```
+```{=html}
+</tr>
+```
+```{=html}
+</table>
+```
+The goal is not to block entire websites. It is to make content
+decisions based on **what you are trying to learn right now**.
 
-Architecture
+## ✨ Features
 
-FocusAI consists of three main components.
+```{=html}
+<table>
+```
+```{=html}
+<tr>
+```
+```{=html}
+<td width="50%">
+```
+```{=html}
+<h3>
+```
+🎯 Study Context
+```{=html}
+</h3>
+```
+Define a study topic and learning objectives so content can be evaluated
+against your current goal.
+```{=html}
+</td>
+```
+```{=html}
+<td width="50%">
+```
+```{=html}
+<h3>
+```
+🧠 Semantic Relevance
+```{=html}
+</h3>
+```
+Uses text embeddings to estimate how closely page content matches your
+study context.
+```{=html}
+</td>
+```
+```{=html}
+</tr>
+```
+```{=html}
+<tr>
+```
+```{=html}
+<td>
+```
+```{=html}
+<h3>
+```
+🤖 Contextual AI Evaluation
+```{=html}
+</h3>
+```
+Uses Google Gemini selectively when the initial relevance signal is
+ambiguous or the available content needs additional reasoning.
+```{=html}
+</td>
+```
+```{=html}
+<td>
+```
+```{=html}
+<h3>
+```
+🧭 Three-Way Classification
+```{=html}
+</h3>
+```
+Separates relevant, partially relevant, and distracting content instead
+of relying only on website-level blocklists.
+```{=html}
+</td>
+```
+```{=html}
+</tr>
+```
+```{=html}
+<tr>
+```
+```{=html}
+<td>
+```
+```{=html}
+<h3>
+```
+🌐 Browser Integration
+```{=html}
+</h3>
+```
+A Chrome extension connects the browsing experience to the
+content-analysis backend.
+```{=html}
+</td>
+```
+```{=html}
+<td>
+```
+```{=html}
+<h3>
+```
+📺 Supported Content Sources
+```{=html}
+</h3>
+```
+Includes integrations for platforms such as YouTube and Netflix.
+```{=html}
+</td>
+```
+```{=html}
+</tr>
+```
+```{=html}
+</table>
+```
+## 🧠 How It Works
 
-Component	Technology	Responsibility
-Backend	Python, FastAPI	Content analysis, relevance scoring, and AI integration
-Frontend	React, TypeScript, Vite	User interface and interaction
-Browser Extension	Chrome Extensions API	Browser integration and supported-page analysis
+``` text
+┌──────────────────────────┐
+│  1. Set a study context  │
+│  Topic + learning goals  │
+└─────────────┬────────────┘
+              │
+              ▼
+┌──────────────────────────┐
+│  2. Capture page content │
+│  Chrome extension        │
+└─────────────┬────────────┘
+              │
+              ▼
+┌──────────────────────────┐
+│  3. Analyze relevance    │
+│  Text embeddings         │
+│  + adaptive scoring      │
+└─────────────┬────────────┘
+              │
+              ▼
+┌──────────────────────────┐
+│  4. Resolve ambiguity    │
+│  Gemini evaluation       │
+│  when needed             │
+└─────────────┬────────────┘
+              │
+              ▼
+┌──────────────────────────┐
+│  5. Return classification│
+│  Relevant                │
+│  Partially relevant      │
+│  Distracting             │
+└──────────────────────────┘
+```
 
-AI and Relevance Engine
+### Relevance engine
 
-The relevance engine uses:
+FocusAI combines two kinds of signals:
 
-* Sentence Transformers: sentence-transformers/all-MiniLM-L6-v2
-* Google Gemini API: Additional contextual evaluation for selected cases
-* Adaptive scoring: Combines semantic similarity with language-model evaluation when appropriate
+1.  **Semantic similarity:** the
+    `sentence-transformers/all-MiniLM-L6-v2` model creates text
+    embeddings used to compare the study context with page content.
+2.  **Contextual reasoning:** Google Gemini can be used selectively for
+    ambiguous cases rather than being required for every classification.
 
-The backend supports configurable relevance thresholds and exposes an engine-information endpoint at /api/relevance/engine.
+The signals are combined through the project's relevance-scoring logic
+to produce a classification. This design aims to balance efficient
+similarity checks with deeper evaluation when needed.
 
-Technology Stack
+## 🧰 Tech Stack
 
-Languages
+  Layer                   Technology
+  ----------------------- ----------------------------------------------
+  Frontend                React, TypeScript, Vite
+  Backend API             Python, FastAPI, Uvicorn
+  Semantic analysis       Sentence Transformers --- `all-MiniLM-L6-v2`
+  Contextual evaluation   Google Gemini API
+  Browser integration     Chrome Extension
+  Development tools       Git, GitHub, VS Code
 
-* Python
-* TypeScript
-* JavaScript
+## 🏗️ Project Structure
 
-Backend
-
-* FastAPI
-* Uvicorn
-
-Frontend
-
-* React
-* TypeScript
-* Vite
-
-AI and Machine Learning
-
-* Sentence Transformers
-* all-MiniLM-L6-v2
-* Google Gemini API
-
-Browser Integration
-
-* Chrome Extension APIs
-
-Testing and Development
-
-* pytest
-* Python uv
-* Git and GitHub
-
-Project Structure
-
+``` text
 FocusAI/
-├── backend/
-│   ├── app/
-│   │   └── ai/
-│   │       └── llm.py
-│   ├── scripts/
-│   │   └── eval_relevance.py
-│   ├── main.py
-│   └── ...
-├── frontend/
-│   └── ...
-├── extension/
-│   └── ...
-├── extension-tests/
-│   └── ...
+├── backend/             # FastAPI API and relevance-analysis logic
+├── frontend/            # React + TypeScript user interface
+├── extension/           # Chrome extension
+├── extension-tests/     # Extension-related tests
 ├── .gitignore
 └── README.md
+```
 
-The tree highlights important project components; individual files may differ as the project evolves.
+> The exact files inside each directory may evolve as the project
+> develops.
 
-Getting Started
+## 🚀 Getting Started
 
-Prerequisites
+### Prerequisites
 
-Install the following before running FocusAI:
+Install the following before running the project:
 
-* Python
-* uv
-* Node.js and npm
-* Google Gemini API credentials if you want to use Gemini evaluation
-* Google Chrome to load the browser extension
+-   Python and `uv` for the backend environment
+-   Node.js and npm for the frontend
+-   Google Chrome to load the browser extension
+-   A Google Gemini API key if contextual evaluation is enabled
 
-1. Clone the Repository
+### 1. Clone the repository
 
+``` bash
 git clone https://github.com/pawariarushil/FocusAI.git
 cd FocusAI
+```
 
-2. Set Up the Backend
+### 2. Start the backend
 
-Navigate to the backend directory:
-
+``` bash
 cd backend
-
-Install the Python dependencies:
-
 uv sync
+```
 
-For the machine-learning dependencies required by the Sentence Transformers backend, run:
+Configure the environment variables required by your backend in a local
+`.env` file. Keep API keys private and never commit them to GitHub.
 
-uv sync --extra ml
+Then start the API:
 
-Create a local .env file using the environment-variable names supported by your backend configuration.
-
-For example:
-
-LLM_PROVIDER=gemini
-LLM_MODEL=gemini-3.5-flash-lite
-LLM_API_KEY=your_gemini_api_key
-
-The model name above is an example configuration. Use a model currently available to your Google Gemini API account and supported by your implementation.
-
-Depending on your configuration, the backend may also support:
-
-LLM_API_URL=
-LLM_TIMEOUT_SECONDS=
-
-Consult the backend configuration and any provided environment example for the supported defaults and required values. Do not commit your .env file or API keys to GitHub.
-
-Start the backend development server:
-
+``` bash
 uv run uvicorn main:app --reload
+```
 
-The server will print its local address when it starts. Keep this terminal running while using the frontend or extension.
+If your backend entry point or dependency groups change, use the
+commands documented in the current `backend/pyproject.toml`.
 
-3. Set Up the Frontend
+When the server is running, FastAPI's interactive API documentation is
+typically available at:
 
-Open a second terminal from the repository root:
+-   `http://127.0.0.1:8000/docs`
 
+### 3. Start the frontend
+
+Open a second terminal from the project root:
+
+``` bash
 cd frontend
 npm install
 npm run dev
+```
 
-Open the local address printed by Vite in your browser.
+Open the local URL printed by Vite in your terminal. The default
+development URL is commonly `http://localhost:5173`.
 
-If the frontend uses a configurable backend URL, set it to the address of your running FastAPI server using the environment-variable name expected by the frontend.
+### 4. Load the Chrome extension
 
-4. Load the Chrome Extension
+1.  Open Chrome and visit `chrome://extensions`.
+2.  Enable **Developer mode**.
+3.  Select **Load unpacked**.
+4.  Choose the project's `extension/` directory.
+5.  Follow the extension's configured backend URL and any setup
+    instructions in its own files.
 
-1. Open Google Chrome.
-2. Navigate to chrome://extensions/.
-3. Enable Developer mode.
-4. Select Load unpacked.
-5. Choose the project’s extension/ directory if it contains the extension’s manifest.json.
-6. Pin the extension to the browser toolbar if desired.
-7. Start the backend and frontend, then configure the extension according to its interface.
+Make sure the backend is running and that the extension is configured to
+reach the correct local API address.
 
-If the extension requires a build step, complete that step first and load the generated directory containing manifest.json.
+## ⚙️ Configuration & Security
 
-Testing
+-   Keep local `.env` files out of version control.
+-   Use an example environment file to document required variable names
+    without including real secrets.
+-   Store API keys in environment variables; never hard-code them into
+    frontend code or commit them.
+-   Configure the backend's allowed origins for the frontend address you
+    actually use.
+-   Do not assume the extension can reach a deployed backend until its
+    API URL and permissions have been configured.
 
-Run Backend Tests
+**Important:** environment-variable names depend on the current backend
+implementation. Check the backend's `.env.example` or configuration code
+before adding variables; do not copy secret values into this README.
 
-From the backend/ directory:
+## 🧪 Testing & Verification
 
-uv run pytest -q
+Before considering a change complete, verify the parts affected by it:
 
-This runs the backend’s pytest test suite.
+-   **Backend:** start the FastAPI server and exercise the relevant
+    endpoints.
+-   **Frontend:** run the development server and verify that API
+    requests succeed.
+-   **Extension:** load it unpacked in Chrome and test the pages and
+    actions it supports.
+-   **Relevance engine:** test relevant, partially relevant, and
+    distracting examples against different study contexts.
+-   **Secrets:** confirm `.env` files and API keys are not staged for a
+    commit.
 
-Evaluate Relevance Classification
+The exact test commands depend on the scripts and test configuration
+currently present in the repository.
 
-To run the relevance evaluation script:
+## 🛣️ Roadmap
 
-uv run python scripts/eval_relevance.py
+Potential areas for continued development include:
 
-The evaluation script checks classification behavior against the examples defined by the project.
+-   Improving explanations for content classifications.
+-   Evaluating classification quality with a labeled test set.
+-   Expanding supported page types and extraction strategies.
+-   Improving extension feedback and user controls.
+-   Adding privacy-conscious study activity insights.
+-   Improving automated integration tests across the frontend, backend,
+    and extension.
 
-Inspect the Relevance Engine Configuration
+These are development directions, not claims that every item is already
+implemented.
 
-With the backend running, request:
+## 💡 Why FocusAI?
 
-GET /api/relevance/engine
+FocusAI explores a practical question: **can a learning tool judge
+content by its relevance to a learner's current goal instead of judging
+it only by the website it appears on?**
 
-This endpoint reports information about the configured relevance engine, including its embedding backend, LLM configuration, and scoring thresholds.
+By combining a browser extension, a semantic relevance engine, and
+selective contextual reasoning, the project brings together full-stack
+development, API design, browser integration, and applied NLP.
 
-Configuration and Security
+------------------------------------------------------------------------
 
-* Keep API keys in local environment files or an appropriate secrets manager.
-* Never commit .env files, API credentials, or other secrets.
-* Use .env.example to document configuration variables without including real credentials.
-* Ensure the frontend and Chrome extension communicate with the correct backend address.
-* Review browser-extension permissions and grant only the permissions required by the implementation.
+::: {align="center"}
+### FocusAI
 
-Current Scope
+**Stay on topic. Learn with purpose.**
 
-FocusAI is a study-focused content relevance assistant. Its classification reflects how closely content aligns with a specified learning context; it does not establish whether content is factually correct or whether a student is actually learning.
-
-Platform compatibility depends on the content available to the extension and the implementation of each supported page integration.
-
-Future Improvements
-
-Potential areas for further development include:
-
-* More comprehensive relevance-evaluation datasets
-* Improved handling of short, ambiguous, and mixed-topic content
-* Additional supported learning platforms
-* More detailed explanations for classification decisions
-* Improved automated testing of browser-extension behavior
-* Performance and usability improvements
-
-Author
-
-Rushil Pawaria
-
-* GitHub: @pawariarushil
-* LinkedIn: Rushil Pawaria
-
-⸻
-
-FocusAI — helping students align their online browsing with their learning goals.
+Built as a context-aware learning assistant.
+:::
