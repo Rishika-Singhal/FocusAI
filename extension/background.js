@@ -53,6 +53,7 @@ async function analyze(payload, tabId) {
     const hit = cache[cacheKey];
     if (hit && Date.now() - hit.at < CACHE_TTL_MS) {
       await setBadge(tabId, hit.result.decision);
+      trackDecision(payload, hit.result.decision);
       return { result: hit.result, cached: true };
     }
 
@@ -87,6 +88,7 @@ async function analyze(payload, tabId) {
       await chrome.storage.session.set(update);
     } catch (_) { /* ignore */ }
     await setBadge(tabId, result.decision);
+    trackDecision(payload, result.decision);
     return { result };
   } catch (err) {
     // Fail open: never break browsing because the backend is down, slow or returned an error.
@@ -121,10 +123,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       override(msg.payload).then(() => sendResponse({ ok: true }), () => sendResponse({ ok: false }));
       return true;
     case "SET_SESSION":
-      chrome.storage.local
-        .set({ sessionId: msg.sessionId || "", topic: msg.topic || "" })
-        .then(() => chrome.storage.session.set({ cache: {}, overrides: {} }))
-        .then(() => sendResponse({ ok: true }));
+      setSession(msg).then(() => sendResponse({ ok: true }), () => sendResponse({ ok: false }));
+      return true;
+    case "TRACK":
+      enqueue(msg.events || []).then(() => sendResponse({ ok: true }), () => sendResponse({ ok: false }));
       return true;
     case "GET_TAB_STATE":
       sessionGet(`tab:${msg.tabId}`).then((state) => sendResponse(state || null));
@@ -133,3 +135,72 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => { chrome.storage.session.remove(`tab:${tabId}`).catch(() => {}); });
+
+// ---------- Phase 7: activity tracking (batched, best-effort, never breaks browsing) ----------
+const FLUSH_ALARM = "focusai-flush";
+const FLUSH_BATCH = 10;
+const MAX_QUEUE = 400;
+let chain = Promise.resolve();
+const serial = (fn) => (chain = chain.then(fn, fn)); // one queue operation at a time
+
+async function postEvents(sessionId, events) {
+  const cfg = await getConfig();
+  for (let i = 0; i < events.length; i += 200) {
+    const resp = await fetch(`${cfg.backendUrl}/api/activity/events`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId, events: events.slice(i, i + 200) }),
+    });
+    if (!resp.ok) throw new Error(`events ${resp.status}`);
+  }
+}
+
+function flushNow() {
+  return serial(async () => {
+    const q = await sessionGet("queue");
+    if (!q || !q.events || !q.events.length) return;
+    await chrome.storage.session.set({ queue: { sessionId: q.sessionId, events: [] } });
+    try {
+      await postEvents(q.sessionId, q.events);
+    } catch (_) {
+      const cur = (await sessionGet("queue")) || { sessionId: q.sessionId, events: [] };
+      const merged = q.sessionId === cur.sessionId ? q.events.concat(cur.events) : q.events;
+      await chrome.storage.session.set({ queue: { sessionId: q.sessionId, events: merged.slice(-MAX_QUEUE) } });
+    }
+  });
+}
+
+function enqueue(events) {
+  return serial(async () => {
+    const cfg = await getConfig();
+    if (!cfg.enabled || !cfg.sessionId || !events.length) return;
+    let q = (await sessionGet("queue")) || { sessionId: cfg.sessionId, events: [] };
+    if (q.sessionId !== cfg.sessionId) q = { sessionId: cfg.sessionId, events: [] };
+    q.events = q.events.concat(events.map((e) => ({ event_type: e.event_type, metadata: e.metadata || {} })));
+    await chrome.storage.session.set({ queue: q });
+    if (q.events.length >= FLUSH_BATCH) flushNow();
+  });
+}
+
+function trackDecision(payload, decision) {
+  let host = "";
+  try { host = new URL(payload.url).hostname; } catch (_) { /* ignore */ }
+  const type = { ALLOW: "content_allowed", WARN: "warning_shown", BLOCK: "content_blocked" }[decision];
+  const events = [{ event_type: "page_open", metadata: { host } }];
+  if (type) events.push({ event_type: type, metadata: { host } });
+  enqueue(events).catch(() => {});
+}
+
+async function setSession(msg) {
+  const prev = (await getConfig()).sessionId;
+  const next = msg.sessionId || "";
+  await flushNow();
+  if (prev && prev !== next) await postEvents(prev, [{ event_type: "session_end", metadata: {} }]).catch(() => {});
+  await chrome.storage.local.set({ sessionId: next, topic: msg.topic || "" });
+  await chrome.storage.session.set({ cache: {}, overrides: {} });
+  if (next && next !== prev) await postEvents(next, [{ event_type: "session_start", metadata: {} }]).catch(() => {});
+}
+
+chrome.tabs.onActivated.addListener(() => { enqueue([{ event_type: "tab_switch", metadata: {} }]).catch(() => {}); });
+chrome.alarms.create(FLUSH_ALARM, { periodInMinutes: 0.5 });
+chrome.alarms.onAlarm.addListener((a) => { if (a.name === FLUSH_ALARM) flushNow().catch(() => {}); });
