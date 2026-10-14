@@ -204,3 +204,28 @@ async function setSession(msg) {
 chrome.tabs.onActivated.addListener(() => { enqueue([{ event_type: "tab_switch", metadata: {} }]).catch(() => {}); });
 chrome.alarms.create(FLUSH_ALARM, { periodInMinutes: 0.5 });
 chrome.alarms.onAlarm.addListener((a) => { if (a.name === FLUSH_ALARM) flushNow().catch(() => {}); });
+
+// ---------- Phase 8: proactive notification when the LSTM predicts a focus dip ----------
+const PREDICT_ALARM = "focusai-predict";
+const NOTIFY_COOLDOWN_MS = 15 * 60 * 1000;
+
+async function checkFocusForecast() {
+  const cfg = await getConfig();
+  if (!cfg.enabled || !cfg.sessionId) return;
+  const last = await sessionGet("lastForecastAlert");
+  if (last && Date.now() - last < NOTIFY_COOLDOWN_MS) return;
+  const resp = await fetch(`${cfg.backendUrl}/api/prediction/sessions/${cfg.sessionId}`, { method: "POST" });
+  if (!resp.ok) return; // e.g. not enough activity yet
+  const data = await resp.json();
+  if (!data.alert) return;
+  await chrome.storage.session.set({ lastForecastAlert: Date.now() });
+  chrome.notifications.create({
+    type: "basic",
+    iconUrl: "icons/icon128.png",
+    title: "FocusAI: focus dip ahead",
+    message: data.message,
+  });
+}
+
+chrome.alarms.create(PREDICT_ALARM, { periodInMinutes: 3 });
+chrome.alarms.onAlarm.addListener((a) => { if (a.name === PREDICT_ALARM) checkFocusForecast().catch(() => {}); });
