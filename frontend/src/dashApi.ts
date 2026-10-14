@@ -39,8 +39,11 @@ const TOKEN_KEY = "focusai_token";
 export const getToken = (): string | null => {
   try { return localStorage.getItem(TOKEN_KEY); } catch { return null; }
 };
-const setToken = (t: string) => localStorage.setItem(TOKEN_KEY, t);
-export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
+// Tell the Chrome extension (via sync.js) which login token to use.
+const announceToken = () =>
+  window.postMessage({ type: "FOCUSAI_TOKEN", token: getToken() ?? "" }, window.location.origin);
+const setToken = (t: string) => { localStorage.setItem(TOKEN_KEY, t); announceToken(); };
+export const clearToken = () => { localStorage.removeItem(TOKEN_KEY); announceToken(); };
 
 async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = { ...(init.headers as Record<string, string> | undefined) };

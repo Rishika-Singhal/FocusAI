@@ -7,13 +7,19 @@ const MAX_TEXT_CHARS = 30000;
 const getConfig = () => chrome.storage.local.get(DEFAULTS);
 const sessionGet = async (key) => (await chrome.storage.session.get(key))[key];
 
+// The login token lives in chrome.storage.session, which web pages and content scripts cannot read.
+async function authHeaders(extra = {}) {
+  const token = await sessionGet("token");
+  return token ? { ...extra, Authorization: `Bearer ${token}` } : extra;
+}
+
 async function setBadge(tabId, decision) {
   if (tabId == null) return;
 
   const map = {
-    ALLOW: ["✓", "#16a34a"],
+    ALLOW: ["\u2713", "#16a34a"],
     WARN: ["!", "#d97706"],
-    BLOCK: ["×", "#dc2626"]
+    BLOCK: ["\u00d7", "#dc2626"]
   };
 
   const [text, color] = map[decision] || ["", "#64748b"];
@@ -63,7 +69,7 @@ async function analyze(payload, tabId) {
     try {
       const resp = await fetch(`${cfg.backendUrl}/api/relevance/analyze`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await authHeaders({ "Content-Type": "application/json" }),
         signal: controller.signal,
         body: JSON.stringify({
           session_id: cfg.sessionId,
@@ -107,7 +113,7 @@ async function override(payload) {
   try {
     await fetch(`${cfg.backendUrl}/api/relevance/override`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ session_id: cfg.sessionId, url: payload.url, title: payload.title }),
     });
   } catch (_) { /* logging is best-effort */ }
@@ -128,6 +134,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     case "TRACK":
       enqueue(msg.events || []).then(() => sendResponse({ ok: true }), () => sendResponse({ ok: false }));
       return true;
+    case "SET_TOKEN": {
+      // Only the FocusAI web app may hand the extension a login token.
+      const fromApp = sender.url && /^http:\/\/(localhost|127\.0\.0\.1):5173\//.test(sender.url);
+      if (!fromApp) { sendResponse({ ok: false }); return false; }
+      chrome.storage.session.set({ token: msg.token || "" })
+        .then(() => sendResponse({ ok: true }), () => sendResponse({ ok: false }));
+      return true;
+    }
     case "GET_TAB_STATE":
       sessionGet(`tab:${msg.tabId}`).then((state) => sendResponse(state || null));
       return true;
@@ -148,7 +162,7 @@ async function postEvents(sessionId, events) {
   for (let i = 0; i < events.length; i += 200) {
     const resp = await fetch(`${cfg.backendUrl}/api/activity/events`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: await authHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ session_id: sessionId, events: events.slice(i, i + 200) }),
     });
     if (!resp.ok) throw new Error(`events ${resp.status}`);
@@ -214,7 +228,10 @@ async function checkFocusForecast() {
   if (!cfg.enabled || !cfg.sessionId) return;
   const last = await sessionGet("lastForecastAlert");
   if (last && Date.now() - last < NOTIFY_COOLDOWN_MS) return;
-  const resp = await fetch(`${cfg.backendUrl}/api/prediction/sessions/${cfg.sessionId}`, { method: "POST" });
+  const resp = await fetch(`${cfg.backendUrl}/api/prediction/sessions/${cfg.sessionId}`, {
+    method: "POST",
+    headers: await authHeaders(),
+  });
   if (!resp.ok) return; // e.g. not enough activity yet
   const data = await resp.json();
   if (!data.alert) return;

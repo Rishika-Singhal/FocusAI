@@ -3,7 +3,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from app.models import User
+from app.models import StudySession, User, UserRole
 from app.utils.database import get_db
 from app.utils.security import decode_token
 
@@ -31,3 +31,17 @@ def require_roles(*roles):
             raise HTTPException(status_code=403, detail="You do not have access to this resource")
         return user
     return dependency
+
+
+def owned_session_or_404(db: Session, user: User, session_id: str) -> StudySession:
+    """A student may only touch their own sessions. Someone else's id looks exactly like a missing one."""
+    session = db.get(StudySession, session_id) if session_id else None
+    if not session or session.student_id != user.id:
+        raise HTTPException(status_code=404, detail="Study session not found")
+    return session
+
+
+def owned_session(session_id: str, user: User = Depends(require_roles(UserRole.STUDENT)),
+                  db: Session = Depends(get_db)) -> StudySession:
+    """Dependency for routes with {session_id} in the path."""
+    return owned_session_or_404(db, user, session_id)

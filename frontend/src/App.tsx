@@ -98,7 +98,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const onLogout = () => { endLocalSession(); setUser(null); };
+    const onLogout = () => { clearToken(); endLocalSession(); setUser(null); };
     window.addEventListener("focusai-logout", onLogout);
     return () => window.removeEventListener("focusai-logout", onLogout);
   }, []);

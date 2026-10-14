@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.deps import owned_session
 from app.models import StudySession
 from app.schemas.prediction import PredictionResult
 from app.services import prediction_service
@@ -10,10 +11,7 @@ router = APIRouter(prefix="/prediction", tags=["Focus Decay Prediction"])
 
 
 @router.post("/sessions/{session_id}", response_model=PredictionResult)
-def predict_focus(session_id: str, db: Session = Depends(get_db)):
-    session = db.get(StudySession, session_id)
-    if not session:
-        raise HTTPException(status_code=404, detail="Study session not found")
+def predict_focus(session: StudySession = Depends(owned_session), db: Session = Depends(get_db)):
     try:
         return prediction_service.predict(db, session)
     except prediction_service.ModelNotTrained:
